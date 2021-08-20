@@ -1,7 +1,7 @@
 import express from 'express'
 import auth from '../middleware/auth.js'
 import upload from '../middleware/upload.js'
-import { register, login, logout, addCart, getCart, editCart, checkout, getorders, getallorders, extend, getuserinfo } from '../controllers/users.js'
+import { register, login, logout, delUser, editUser, addCart, getCart, editCart, checkout, getorders, getallorders, delOrders, editOrders, extend, getUserInfo, getAllUserInfo } from '../controllers/users.js'
 
 const router = express.Router()
 
@@ -13,8 +13,11 @@ const router = express.Router()
 // 註冊, 前台的路徑為 await this.axios.post('/users', 前台要給後台的資料或請求)
 router.post('/', upload, register)
 
-// 查詢使用者資料, 前台的路徑為 await this.axios.get('/users/', {前台做驗證})
-router.get('/', auth, getuserinfo)
+// 查詢會員資料, 前台的路徑為 await this.axios.get('/users/', {前台做驗證})
+router.get('/', auth, getUserInfo)
+
+// 查詢所有會員資料, 前台的路徑為 await this.axios.get('/users/', {前台做驗證})
+router.get('/all', auth, getAllUserInfo)
 
 // 登入, 前台的路徑為 await this.axios.post('/users/login', 前台要給後台的資料或請求)
 router.post('/login', login)
@@ -22,6 +25,13 @@ router.post('/login', login)
 // 登出, 前台的路徑為 await this.axios.delete('/users/logout', {前台做驗證})
 // delete 不會帶任何資料過來, 但可以帶 jwt 去把它登出
 router.delete('/logout', auth, logout)
+
+// 刪除會員, 前台的路徑為 await this.axios.delete('/users/logout', {前台做驗證})
+// delete 不會帶任何資料過來, 但可以帶 jwt 去把它登出
+router.delete('/:id', auth, delUser)
+
+// 編輯會員
+router.patch('/:id', auth, upload, editUser)
 
 // 加入購物車, 前台的路徑為 await this.axios.post('/users/cart', {前台要給後台的資料或請求}, {前台做驗證})
 router.post('/cart', auth, addCart)
@@ -40,6 +50,12 @@ router.get('/orders', auth, getorders)
 
 // 取得所有會員的訂單資料, 前台的路徑為 await this.axios.get('/users/orders/all', {前台做驗證})
 router.get('/orders/all', auth, getallorders)
+
+// 刪除訂單
+router.delete('/orders/:id', auth, delOrders)
+
+// 編輯訂單
+router.patch('/orders', auth, editOrders)
 
 // 延長簽證 jwt, 前台的路徑為 await this.axios.post('/users/extend', {前台要給後台的資料或請求}, {前台做驗證})
 router.post('/extend', auth, extend)

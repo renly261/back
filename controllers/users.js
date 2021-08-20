@@ -40,8 +40,6 @@ export const register = async (req, res) => {
       // 陣列可以直接 .length 取長度 或 [索引] 取第幾個資料, JSON 則無法, 所以需要 Object.keys 來幫助我們去取第幾個資料
       const key = Object.keys(error.errors)[0]
       // 取驗證失敗的訊息
-      // JSON 物件可以用 . 操作屬性, 只能在 key 不包含符號的狀況下使用，因為 JavaScript 並不會知道後面的符號是 key 的一部分
-      // JSON 物件也可以用 [] 操作屬性, 可接受 key 中有符號, 可以接受變數，會將變數中的值自動轉換成 string 再去讀取
       const message = error.errors[key].message
       res.status(400).send({ success: false, message: message })
       // 若錯誤訊息是 unique 的錯誤訊息, unique 沒有內建錯誤訊息, 要自己在這裡寫
@@ -97,7 +95,8 @@ export const login = async (req, res) => {
           email: user.email,
           account: user.account,
           role: user.role,
-          image: user.image
+          image: user.image,
+          address: user.address
         })
         // 若該 user 的 password 不是當初該 user 註冊時 users.create(req.body) 進來的資料 password 的話
       } else {
@@ -128,6 +127,106 @@ export const logout = async (req, res) => {
     // validateBeforeSave: false 先暫時停用內建的驗證
     req.user.save({ validateBeforeSave: false })
     res.status(200).send({ success: true, message: '' })
+  } catch (error) {
+    console.log(error)
+    res.status(500).send({ success: false, message: '伺服器錯誤' })
+  }
+}
+
+// 取得會員資料 -----------------------------------------------------------------------------
+export const getUserInfo = async (req, res) => {
+  try {
+    res.status(200).send({
+      success: true,
+      message: '',
+      result: { account: req.user.account, role: req.user.role, email: req.user.email, image: req.user.image, address: req.user.address }
+    })
+  } catch (error) {
+    console.log(error)
+    res.status(500).send({ success: false, message: '伺服器錯誤' })
+  }
+}
+
+// 取得所有會員資料 -----------------------------------------------------------------------------
+export const getAllUserInfo = async (req, res) => {
+  try {
+    const result = await users.find()
+    res.status(200).send({
+      success: true,
+      message: '',
+      result
+    })
+  } catch (error) {
+    console.log(error)
+    res.status(500).send({ success: false, message: '伺服器錯誤' })
+  }
+}
+
+// 刪除會員
+export const delUser = async (req, res) => {
+  try {
+    const result = await users.findByIdAndDelete(req.params.id)
+    if (result === null) {
+      res.status(404)
+      res.send({ success: false, message: '找不到使用者' })
+    } else {
+      res.status(200)
+      res.send({ success: true, message: '' })
+    }
+  } catch (error) {
+    // 若 ID 格式不是 mongodb 格式
+    if (error.name === 'CastError') {
+      res.status(404)
+      res.send({ success: false, message: '找不到資料' })
+    } else {
+      res.status(500)
+      res.send({ success: false, message: '伺服器發生錯誤' })
+    }
+  }
+}
+
+// 編輯會員
+export const editUser = async (req, res) => {
+  if (req.user.role !== 1) {
+    res.status(403).send({ success: false, message: '沒有權限' })
+    return
+  }
+  if (!req.headers['content-type'] || !req.headers['content-type'].includes('multipart/form-data')) {
+    res.status(400).send({ success: false, message: '資料格式不正確' })
+    return
+  }
+  try {
+    const data = {
+      account: req.body.account,
+      password: req.body.password,
+      email: req.body.email,
+      address: req.body.address,
+      role: req.body.role
+    }
+    if (req.filepath) data.image = req.filepath
+    const result = await users.findByIdAndUpdate(req.params.id, data, { new: true })
+    res.status(200).send({ success: true, message: '', result })
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      const key = Object.keys(error.errors)[0]
+      const message = error.errors[key].message
+      res.status(400).send({ success: false, message: message })
+    } else {
+      res.status(500).send({ success: false, message: '伺服器錯誤' })
+    }
+  }
+}
+
+// 延長登入給的簽證 token -----------------------------------------------------------------------------
+export const extend = async (req, res) => {
+  try {
+    const idx = req.user.tokens.findIndex(token => req.token === token)
+    const token = jwt.sign({ _id: req.user._id.toString() }, process.env.SECRET, { expiresIn: '7 days' })
+    req.user.tokens[idx] = token
+    // 標記陣列文字已修改過，不然不會更新
+    req.user.markModified('tokens')
+    req.user.save({ validateBeforeSave: false })
+    res.status(200).send({ success: true, message: '', result: token })
   } catch (error) {
     console.log(error)
     res.status(500).send({ success: false, message: '伺服器錯誤' })
@@ -229,7 +328,7 @@ export const checkout = async (req, res) => {
 // 取得使用者訂單 -----------------------------------------------------------------------------
 export const getorders = async (req, res) => {
   try {
-    const result = await orders.find({ user: req.user._id }).populate('user', 'account').populate('products.product').lean()
+    const result = await orders.find({ user: req.user._id }).populate('user', 'account address').populate('products.product').lean()
     res.status(200).send({ success: true, message: '', result })
   } catch (error) {
     res.status(500).send({ success: false, message: '伺服器錯誤' })
@@ -244,7 +343,7 @@ export const getallorders = async (req, res) => {
   }
   try {
     // .populate('models 裡使用 ref 的欄位', '該 ref 關聯到的資料庫裡要取那些欄位')
-    const result = await orders.find().populate('user', 'account').populate('products.product').lean()
+    const result = await orders.find().populate('user', 'account address').populate('products.product').lean()
     res.status(200).send({ success: true, message: '', result })
   } catch (error) {
     console.log(error)
@@ -252,32 +351,38 @@ export const getallorders = async (req, res) => {
   }
 }
 
-// 延長登入給的簽證 token -----------------------------------------------------------------------------
-export const extend = async (req, res) => {
+// 刪除訂單
+export const delOrders = async (req, res) => {
   try {
-    const idx = req.user.tokens.findIndex(token => req.token === token)
-    const token = jwt.sign({ _id: req.user._id.toString() }, process.env.SECRET, { expiresIn: '7 days' })
-    req.user.tokens[idx] = token
-    // 標記陣列文字已修改過，不然不會更新
-    req.user.markModified('tokens')
-    req.user.save({ validateBeforeSave: false })
-    res.status(200).send({ success: true, message: '', result: token })
+    const result = await orders.findByIdAndDelete(req.params.id)
+    if (result) {
+      res.status(200).send({ success: true, message: '' })
+    } else {
+      res.status(404).send({ success: false, message: '查無此訂單' })
+    }
   } catch (error) {
     console.log(error)
     res.status(500).send({ success: false, message: '伺服器錯誤' })
   }
 }
 
-// 取的所有會員資料 -----------------------------------------------------------------------------
-export const getuserinfo = async (req, res) => {
+// 編輯訂單
+export const editOrders = async (req, res) => {
   try {
-    res.status(200).send({
-      success: true,
-      message: '',
-      result: { account: req.user.account, role: req.user.role, email: req.user.email, image: req.user.image }
-    })
+    await orders.findOneAndUpdate(
+      // 找到 products.product 裡符合傳入的商品 ID
+      {
+        'products.product': req.body.product
+      },
+      // 將該筆改為傳入的數量，$ 代表符合查詢條件的索引
+      {
+        $set: {
+          'products.$.amount': req.body.amount
+        }
+      }
+    )
+    res.status(200).send({ success: true, message: '' })
   } catch (error) {
-    console.log(error)
     res.status(500).send({ success: false, message: '伺服器錯誤' })
   }
 }
