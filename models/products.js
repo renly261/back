@@ -14,6 +14,9 @@ const productSchema = new Schema({
   description: {
     type: String
   },
+  detail: {
+    type: String
+  },
   // 商品資料庫的價格欄位 -------------------------------------------------------------------------------
   price: {
     type: Number,
@@ -25,12 +28,12 @@ const productSchema = new Schema({
     type: String
   },
   brand: {
-    type: String,
-    required: [true, '品牌不能為空']
+    type: String
+    // required: [true, '品牌不能為空']
   },
   cate: {
-    type: String,
-    required: [true, '類別不能為空']
+    type: String
+    // required: [true, '類別不能為空']
   },
   // 商品資料庫的上架欄位 -------------------------------------------------------------------------------
   sell: {

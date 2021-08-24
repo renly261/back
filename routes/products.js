@@ -8,8 +8,7 @@ import {
   getProducts,
   editProduct,
   getAllProduct,
-  getProductById,
-  getProductByCate
+  getProductById
 } from '../controllers/products.js'
 
 const router = express.Router()
@@ -17,7 +16,6 @@ const router = express.Router()
 router.post('/', auth, upload, newProduct)
 router.get('/', getProduct)
 router.get('/query', getProducts)
-router.get('/cate', getProductByCate)
 router.get('/all', auth, getAllProduct)
 router.get('/:id', getProductById)
 router.patch('/:id', auth, upload, editProduct)

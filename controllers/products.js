@@ -20,6 +20,7 @@ export const newProduct = async (req, res) => {
       name: req.body.name,
       price: req.body.price,
       description: req.body.description,
+      detail: req.body.detail,
       image: req.filepath,
       brand: req.body.brand,
       cate: req.body.cate,
@@ -72,24 +73,6 @@ export const getProductById = async (req, res) => {
     // params.id 是根據每個商品的 _id 去加到網址後面, 在前台路由 path : '/:id' 去將不同商品的資料顯示在同一 pages 上
     const result = await products.findById(req.params.id)
     res.status(200).send({ success: true, message: '', result })
-  } catch (error) {
-    if (error.name === 'CastError') {
-      res.status(404).send({ success: false, message: '查無商品' })
-    } else {
-      res.status(500).send({ success: false, message: '伺服器錯誤' })
-    }
-  }
-}
-
-// 根據商品品牌或類型找到商品
-export const getProductByCate = async (req, res) => {
-  try {
-    // 去 models products 裡面找 有 params.id
-    // params.id 是根據每個商品的 _id 去加到網址後面, 在前台路由 path : '/:id' 去將不同商品的資料顯示在同一 pages 上
-    const result = await products.findOne({ brand: req.body.brand }, '')
-    if (result) {
-      res.status(200).send({ success: true, message: '', name: result.name })
-    }
   } catch (error) {
     if (error.name === 'CastError') {
       res.status(404).send({ success: false, message: '查無商品' })
@@ -185,6 +168,7 @@ export const editProduct = async (req, res) => {
       name: req.body.name,
       price: req.body.price,
       description: req.body.description,
+      detail: req.body.detail,
       brand: req.body.brand,
       cate: req.body.cate,
       sell: req.body.sell
