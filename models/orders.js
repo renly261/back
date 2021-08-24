@@ -8,9 +8,9 @@ const Schema = mongoose.Schema
 const productSchema = new Schema({
   // 訂單資料庫的使用者欄位 -------------------------------------------------------------------------------
   user: {
-    // 使用者資料庫裡使用者的 _id
+    // 資料型態是符合該 _id 的使用者資料庫裡使用者的 _id
     type: Schema.Types.ObjectId,
-    // 用使用者的 _id 去關聯該 models users 的資料, 這樣 controllers 可以用 orders.populate('user.users') 去拉出該 _id models users 的資料
+    // 用使用者的 _id 去關聯該 models users 的資料
     ref: 'users'
   },
   // 訂單資料庫的商品資料欄位 -------------------------------------------------------------------------------
@@ -33,6 +33,16 @@ const productSchema = new Schema({
   date: {
     type: Date,
     required: [true, '缺少訂單日期']
+  },
+  // 訂單收貨地址 -------------------------------------------------------------------------------
+  address: {
+    type: String,
+    required: [true, '缺少收貨地址']
+  },
+  // 訂單進度 -------------------------------------------------------------------------------
+  progress: {
+    type: String,
+    default: '已收到訂單'
   }
 
 }, { versionKey: false })

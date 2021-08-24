@@ -85,9 +85,9 @@ const UserSchema = new Schema(
         {
           // 使用者資料庫的的購物車欄位裡面的商品資料欄位
           product: {
-            // 商品資料庫裡商品的 _id
+            // 資料型態是符合該商品 _id 的 _id
             type: Schema.Types.ObjectId,
-            // 用商品的 _id 去關聯該 _id models products 的資料, 這樣 controllers 可以用 users.populate('product.products') 去拉出該 _id models products 的資料
+            // 用商品的 _id 去關聯符合該 _id 的商品資料
             // schema type ref https://mongoosejs.com/docs/api.html#schematype_SchemaType-ref
             ref: 'products',
             required: [true, '缺少商品 ID']
@@ -99,11 +99,42 @@ const UserSchema = new Schema(
           }
         }
       ]
+    },
+    favorite: {
+      // 資料類型是陣列裡面包 JSON
+      // 陣列的東西不一定要獨立寫一個 schema, 可以像這裡直接寫在 type 裡面
+      type: [
+        {
+          // 使用者資料庫的的購物車欄位裡面的商品資料欄位
+          product: {
+            // 資料型態是符合該商品 _id 的 _id
+            type: Schema.Types.ObjectId,
+            // 用商品的 _id 去關聯符合該 _id 的商品資料
+            // schema type ref https://mongoosejs.com/docs/api.html#schematype_SchemaType-ref
+            ref: 'products',
+            required: [true, '缺少商品 ID']
+          },
+          // 使用者資料庫的的購物車欄位裡面的商品數量欄位
+          amount: {
+            type: Number,
+            default: 0,
+            required: [true, '缺少商品數量']
+          }
+        }
+      ]
     }
   },
   // 停用 mongoose 內建計算更新次數的功能 "__v"
   { versionKey: false }
 )
+
+// 在驗證後準備把資料存入資料庫前要做的事, 不能使用箭頭函式, md5 密碼加密
+UserSchema.pre('findOneAndUpdate', function (next) {
+  if (this._update.password) {
+    this._update.password = md5(this._update.password)
+  }
+  next()
+})
 
 // 在驗證後準備把資料存入資料庫前要做的事, 不能使用箭頭函式, md5 密碼加密
 UserSchema.pre('save', function (next) {

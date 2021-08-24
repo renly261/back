@@ -1,6 +1,6 @@
 // util node js 內建套件, console.log() 時終端機可以顯示 object, 原生 node 會把 object 折疊起來
 import util from 'util'
-import products from '../models/products.js'
+import homes from '../models/homes.js'
 
 // 新增商品 -------------------------------------------------------------------
 export const newProduct = async (req, res) => {
@@ -15,16 +15,13 @@ export const newProduct = async (req, res) => {
     return
   }
   try {
-    // 將使用者或管理者的請求直接塞進 models 資料表的 products
-    const result = await products.create({
-      name: req.body.name,
-      price: req.body.price,
+    // 將使用者或管理者的請求直接塞進 models 資料表的 homes
+    const result = await homes.create({
+      title: req.body.name,
       description: req.body.description,
       image: req.filepath,
-      brand: req.body.brand,
-      cate: req.body.cate,
-      sell: req.body.sell
-
+      date: new Date(),
+      link: req.body.link
     })
     res.status(200).send({ success: true, message: '', result })
   } catch (error) {
@@ -41,8 +38,8 @@ export const newProduct = async (req, res) => {
 // 取得上架中的商品資料 -------------------------------------------------------------------
 export const getProduct = async (req, res) => {
   try {
-    // 去找 models products 裡 sell 是 true 也就是上架中的商品資料
-    const result = await products.find({ sell: true })
+    // 去找 models homes 裡 sell 是 true 也就是上架中的商品資料
+    const result = await homes.find({ sell: true })
     res.status(200).send({ success: true, message: '', result })
   } catch (error) {
     res.status(500).send({ success: false, message: '伺服器錯誤' })
@@ -57,8 +54,8 @@ export const getAllProduct = async (req, res) => {
     return
   }
   try {
-    // 去找 models products 裡的所有資料
-    const result = await products.find()
+    // 去找 models homes 裡的所有資料
+    const result = await homes.find()
     res.status(200).send({ success: true, message: '', result })
   } catch (error) {
     res.status(500).send({ success: false, message: '伺服器錯誤' })
@@ -68,9 +65,9 @@ export const getAllProduct = async (req, res) => {
 // 根據商品 id 找到該商品 -------------------------------------------------------------------
 export const getProductById = async (req, res) => {
   try {
-    // 去 models products 裡面找 有 params.id
+    // 去 models homes 裡面找 有 params.id
     // params.id 是根據每個商品的 _id 去加到網址後面, 在前台路由 path : '/:id' 去將不同商品的資料顯示在同一 pages 上
-    const result = await products.findById(req.params.id)
+    const result = await homes.findById(req.params.id)
     res.status(200).send({ success: true, message: '', result })
   } catch (error) {
     if (error.name === 'CastError') {
@@ -84,9 +81,9 @@ export const getProductById = async (req, res) => {
 // 根據商品品牌或類型找到商品
 export const getProductByCate = async (req, res) => {
   try {
-    // 去 models products 裡面找 有 params.id
+    // 去 models homes 裡面找 有 params.id
     // params.id 是根據每個商品的 _id 去加到網址後面, 在前台路由 path : '/:id' 去將不同商品的資料顯示在同一 pages 上
-    const result = await products.findOne({ brand: req.body.brand }, '')
+    const result = await homes.findOne({ brand: req.body.brand }, '')
     if (result) {
       res.status(200).send({ success: true, message: '', name: result.name })
     }
@@ -100,7 +97,7 @@ export const getProductByCate = async (req, res) => {
 }
 
 // 根據 query 找到商品 -------------------------------------------------------------------
-export const getProducts = async (req, res) => {
+export const gethomes = async (req, res) => {
   try {
     const query = {}
 
@@ -162,7 +159,7 @@ export const getProducts = async (req, res) => {
     }
     // node 原生會將 object 折疊起來, 用 util.inspect() 來將他展開並顯示在終端機裡
     console.log(util.inspect(query, { depth: null }))
-    const result = await products.find(query)
+    const result = await homes.find(query)
     res.status(200).send({ success: true, message: '', result })
   } catch (error) {
     console.log(error)
@@ -190,7 +187,7 @@ export const editProduct = async (req, res) => {
       sell: req.body.sell
     }
     if (req.filepath) data.image = req.filepath
-    const result = await products.findByIdAndUpdate(req.params.id, data, { new: true })
+    const result = await homes.findByIdAndUpdate(req.params.id, data, { new: true })
     res.status(200).send({ success: true, message: '', result })
   } catch (error) {
     if (error.name === 'ValidationError') {

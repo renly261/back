@@ -1,7 +1,7 @@
 import express from 'express'
 import auth from '../middleware/auth.js'
 import upload from '../middleware/upload.js'
-import { register, login, logout, delUser, editUser, addCart, getCart, editCart, checkout, getorders, getallorders, delOrders, editOrders, extend, getUserInfo, getAllUserInfo } from '../controllers/users.js'
+import { register, login, logout, delUser, editUser, addCart, getCart, editCart, checkout, addFavorite, getFavorite, delFavorite, getorders, getallorders, delOrders, editOrders, extend, getUserInfo, getAllUserInfo } from '../controllers/users.js'
 
 const router = express.Router()
 
@@ -31,7 +31,7 @@ router.delete('/logout', auth, logout)
 router.delete('/:id', auth, delUser)
 
 // 編輯會員
-router.patch('/:id', auth, upload, editUser)
+router.patch('/edit:id', auth, upload, editUser)
 
 // 加入購物車, 前台的路徑為 await this.axios.post('/users/cart', {前台要給後台的資料或請求}, {前台做驗證})
 router.post('/cart', auth, addCart)
@@ -45,6 +45,15 @@ router.patch('/cart', auth, editCart)
 // 購物車結帳, 前台的路徑為 await this.axios.post('/users/checkout', {前台要給後台的資料或請求}, {前台做驗證})
 router.post('/checkout', auth, checkout)
 
+// 加入購物車, 前台的路徑為 await this.axios.post('/users/cart', {前台要給後台的資料或請求}, {前台做驗證})
+router.post('/favorite', auth, addFavorite)
+
+// 取得購物車資料, 前台的路徑為 await this.axios.get('/users/cart', {前台做驗證})
+router.get('/favorite', auth, getFavorite)
+
+// 編輯購物車, 前台的路徑為 await this.axios.patch('/users/cart', {前台要給後台的資料或請求}, {前台做驗證})
+router.patch('/favorite', auth, delFavorite)
+
 // 取得使用者的訂單資料, 前台的路徑為
 router.get('/orders', auth, getorders)
 
@@ -55,7 +64,7 @@ router.get('/orders/all', auth, getallorders)
 router.delete('/orders/:id', auth, delOrders)
 
 // 編輯訂單
-router.patch('/orders', auth, editOrders)
+router.patch('/orders/:id', auth, editOrders)
 
 // 延長簽證 jwt, 前台的路徑為 await this.axios.post('/users/extend', {前台要給後台的資料或請求}, {前台做驗證})
 router.post('/extend', auth, extend)

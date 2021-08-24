@@ -24,17 +24,26 @@ const productSchema = new Schema({
   image: {
     type: String
   },
+  brand: {
+    type: String,
+    required: [true, '品牌不能為空']
+  },
+  cate: {
+    type: String,
+    required: [true, '類別不能為空']
+  },
   // 商品資料庫的上架欄位 -------------------------------------------------------------------------------
   sell: {
     type: Boolean,
     default: true
-  },
-  // 商品資料庫的分類欄位 -------------------------------------------------------------------------------
-  category: {
-    type: String,
-    // 這個欄位只能放哪幾種資料
-    enum: ['鞋子', '背包']
   }
+  // 商品資料庫的分類欄位 -------------------------------------------------------------------------------
+  // category: {
+  //   type: String,
+  //   // 這個欄位只能放哪幾種資料
+  //   enum: ['鞋子', '背包']
+  // }
+
 }, { versionKey: false })
 
 export default mongoose.model('products', productSchema)
