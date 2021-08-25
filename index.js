@@ -35,7 +35,7 @@ app.use(
         // 之後後台上 heroku 之後只接受 github 過來的請求
       } else {
         // origin === undefined 代表 postman
-        if (origin !== undefined && origin.includes('github')) {
+        if (origin === undefined || origin.includes('github')) {
           callback(null, true)
         } else {
           callback(new Error('Not allowed'), false)
