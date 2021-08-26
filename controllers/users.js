@@ -336,8 +336,9 @@ export const checkout = async (req, res) => {
       req.user.cart = []
       req.user.save({ validateBeforeSave: false })
     }
+    const result = await users
 
-    res.status(200).send({ success: true, message: '' })
+    res.status(200).send({ success: true, message: '', result })
   } catch (error) {
     console.log(error)
     res.status(500).send({ success: false, message: '伺服器錯誤' })

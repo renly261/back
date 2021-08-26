@@ -42,6 +42,11 @@ const productSchema = new Schema({
   sell: {
     type: Boolean,
     default: true
+  },
+  last: {
+    type: Number,
+    default: 10,
+    min: [0, '商品庫存已空']
   }
   // 商品資料庫的分類欄位 -------------------------------------------------------------------------------
   // category: {
